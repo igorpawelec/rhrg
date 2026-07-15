@@ -1,0 +1,25 @@
+% Generated from roxygen comments in R/io.R; regenerate with roxygen2::roxygenise()
+\name{read_chm}
+\alias{read_chm}
+\title{Read a CHM raster}
+\usage{
+read_chm(x, band = 1L)
+}
+\arguments{
+\item{x}{A \code{SpatRaster} or a path to a raster file.}
+\item{band}{Integer. Layer to read.}
+}
+\value{
+A list with \code{chm} (numeric matrix) and \code{template} (a single-layer
+\code{SpatRaster} carrying the CRS, extent and resolution).
+}
+\description{
+Thin wrapper over \pkg{terra}, kept out of the algorithm so that
+\code{\link{grow_crowns}} and friends work on plain matrices with no spatial
+dependency at all.
+}
+\details{
+Nodata is left as-is rather than converted to \code{NA}: growing works on raw
+values and a nodata of -9999 falls below any sensible \code{mask_thresh}.
+Convert explicitly if your nodata is a plausible height.
+}

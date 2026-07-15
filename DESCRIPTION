@@ -1,0 +1,29 @@
+Package: rhrg
+Type: Package
+Title: Individual Tree Crown Delineation by Hierarchical Region Growing
+Version: 0.1.0
+Authors@R: person("Igor", "Pawelec", email = "igor.pawelec@urk.edu.pl",
+                  role = c("aut", "cre"),
+                  comment = c(ORCID = "0009-0005-9798-3596"))
+Description: Delineates individual tree crowns from a canopy height model.
+    Tree tops seed a marker-based watershed; the resulting regions form a
+    weighted adjacency graph; crowns then grow under a height-variance
+    constraint, merging neighbouring trees where the canopy does not
+    separate them, which corrects over-detected tree tops. Canopy claimed by
+    two crowns is arbitrated on the data, so the segmentation does not depend
+    on the order the tree tops arrive in. Results are identical to the
+    'pyHRG' Python package, which is verified by a shared test suite.
+    Methods follow Chan, Golub and LeVeque (1983)
+    <doi:10.1080/00031305.1983.10483115> for combining region statistics and
+    Popescu and Wynne (2004) <doi:10.14358/PERS.70.5.589> for tree detection.
+    The pipeline structure derives from 'PyCrown', Zoerner and others (2018)
+    <doi:10.7931/M0SR-DN55>.
+License: GPL-3
+Encoding: UTF-8
+Depends: R (>= 3.6.0)
+Imports: stats
+Suggests: terra
+URL: https://github.com/igorpawelec/rhrg
+BugReports: https://github.com/igorpawelec/rhrg/issues
+RoxygenNote: 7.3.1
+NeedsCompilation: yes

@@ -1,0 +1,42 @@
+% Generated from roxygen comments in R/delineate.R; regenerate with roxygen2::roxygenise()
+\name{delineate}
+\alias{delineate}
+\title{Delineate tree crowns from a canopy height model}
+\usage{
+delineate(chm, smooth_ws = 3L, smooth_method = "median", hmin = 2,
+  detect_ws = 3L, merge_distance = NULL, screen_hmin = NULL,
+  quiet = FALSE, ...)
+}
+\arguments{
+\item{chm}{Numeric matrix, or a \code{SpatRaster}, or a path to a raster.
+Rasters need the \pkg{terra} package.}
+\item{smooth_ws, smooth_method}{Passed to \code{\link{smooth_chm}}.}
+\item{hmin, detect_ws}{Passed to \code{\link{detect_tops}}.}
+\item{merge_distance}{Numeric or \code{NULL}. If given, merge tops within this
+radius.}
+\item{screen_hmin}{Numeric or \code{NULL}. If given, drop tops below this
+height.}
+\item{quiet}{Logical. Suppress progress messages.}
+\item{...}{Passed to \code{\link{grow_crowns}}, e.g. \code{variance_thresh},
+\code{conflict_rule}, \code{mask_thresh}.}
+}
+\value{
+A list with \code{crowns} (integer matrix of crown ids, 0 for background; a
+\code{SpatRaster} if the input was one), \code{tops} (the tree tops actually
+used) and \code{n_contested} (regions claimed by more than one crown).
+}
+\description{
+Runs the whole pipeline: smooth, detect tops, optionally merge and screen
+them, then grow crowns. Each stage is also available on its own
+(\code{\link{smooth_chm}}, \code{\link{detect_tops}}, \code{\link{merge_tops}},
+\code{\link{screen_tops}}, \code{\link{grow_crowns}}) if you want to inspect
+or replace one.
+}
+\examples{
+yy <- row(matrix(0, 60, 60)); xx <- col(matrix(0, 60, 60))
+chm <- pmax(22 * exp(-((yy - 20)^2 + (xx - 20)^2) / 60),
+            26 * exp(-((yy - 40)^2 + (xx - 40)^2) / 60))
+res <- delineate(chm, hmin = 5, detect_ws = 5, variance_thresh = 6,
+                 mask_thresh = 1, quiet = TRUE)
+length(setdiff(unique(as.vector(res$crowns)), 0))
+}
