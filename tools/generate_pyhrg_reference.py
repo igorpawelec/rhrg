@@ -14,11 +14,17 @@ os.makedirs(OUT, exist_ok=True)
 
 rng = np.random.default_rng(11)
 cases = []
-for k in range(60):
-    n = int(rng.integers(30, 60))
+# Cases 60-69 are large and crowded on purpose. The original 60 are 30-60 px
+# with 2-7 trees, which is nothing like a real canopy height model: the
+# divergence found on real CHMs in 2026-07 lives in plateau structure that
+# only appears once crowns are dense enough to touch.
+for k in range(70):
+    big = k >= 60
+    n = int(rng.integers(140, 200)) if big else int(rng.integers(30, 60))
     yy, xx = np.mgrid[0:n, 0:n]
     chm = np.zeros((n, n))
-    for _ in range(int(rng.integers(2, 8))):
+    n_trees = int(rng.integers(25, 60)) if big else int(rng.integers(2, 8))
+    for _ in range(n_trees):
         r, c = rng.integers(4, n - 4, 2)
         chm = np.maximum(chm, rng.uniform(10, 28) *
                          np.exp(-((yy - r) ** 2 + (xx - c) ** 2)
@@ -28,7 +34,8 @@ for k in range(60):
     chm = chm.astype(np.float32)
 
     sm = smooth_chm(chm, ws=3, method="median")
-    tops = as_pixels(detect_tops(sm, hmin=5, ws=5))
+    sub = detect_tops(sm, hmin=5, ws=5)
+    tops = as_pixels(sub)
     if not tops:
         continue
     vt = float(rng.choice([2.0, 8.0, 25.0]))
@@ -39,6 +46,12 @@ for k in range(60):
                     conflict_rule=rule)
     np.savetxt(f"{OUT}/sm_{k}.csv", sm, delimiter=",")
     np.savetxt(f"{OUT}/tops_{k}.csv", np.array(tops) + 1, fmt="%d", delimiter=",")
+    # Subpixel tops, before as_pixels. Without these the R side of
+    # detect_tops is never compared against anything: the validator used to
+    # read tops that Python had already detected *and* floored, so R's own
+    # detect_tops -> grow_crowns handoff went unexercised.
+    np.savetxt(f"{OUT}/sub_{k}.csv", np.asarray(sub, float) + 1.0,
+               delimiter=",", fmt="%.17g")
     np.savetxt(f"{OUT}/out_{k}.csv", out, fmt="%d", delimiter=",")
     cases.append((k, vt, rule, g.n_contested))
 

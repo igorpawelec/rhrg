@@ -11,8 +11,11 @@ Description: Delineates individual tree crowns from a canopy height model.
     constraint, merging neighbouring trees where the canopy does not
     separate them, which corrects over-detected tree tops. Canopy claimed by
     two crowns is arbitrated on the data, so the segmentation does not depend
-    on the order the tree tops arrive in. Results are identical to the
-    'pyHRG' Python package, which is verified by a shared test suite.
+    on the order the tree tops arrive in. Results match the 'pyHRG' Python
+    package pixel for pixel on the shared synthetic test suite, and closely
+    but not exactly on canopy height models containing plateaus, where the
+    two implementations break ties differently; the difference is measured
+    and documented rather than assumed away.
     Methods follow Chan, Golub and LeVeque (1983)
     <doi:10.1080/00031305.1983.10483115> for combining region statistics and
     Popescu and Wynne (2004) <doi:10.14358/PERS.70.5.589> for tree detection.

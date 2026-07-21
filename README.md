@@ -10,7 +10,7 @@
 
 R and plain C. No Rcpp, no compiled dependencies, and `terra` only if you want to read files.
 
-> **Python users:** the same algorithm is in [pyHRG](https://github.com/igorpawelec/pyhrg). The two are separate repositories because their tooling and idioms do not mix — but they are not merely similar. They produce **identical output, pixel for pixel**, and that is checked rather than claimed (see [Agreement with pyHRG](#agreement-with-pyhrg)).
+> **Python users:** the same algorithm is in [pyHRG](https://github.com/igorpawelec/pyhrg). The two are separate repositories because their tooling and idioms do not mix — but they are not merely similar. On the shared synthetic test suite they produce **identical output, pixel for pixel**. On real canopy height models they agree closely but not exactly, because the two watershed implementations break plateau ties differently. Both numbers are measured, not claimed — see [Agreement with pyHRG](#agreement-with-pyhrg).
 
 ## Background
 
@@ -127,6 +127,8 @@ Two implementations of one method are only useful if they agree, so this is meas
 | Watershed vs `scikit-image`, 200 random scenes incl. plateaus | **0 of 422,687 px differ** |
 | Full pipeline vs pyHRG, 60 random scenes, all 3 conflict rules | **0 of 120,977 px differ** |
 | Crown counts, contested counts | identical throughout |
+| Watershed vs `scikit-image`, 7 **real** CHMs | 375 of 147,368 masked px differ (**0.25 %**) |
+| Full pipeline vs pyHRG, same 7 real CHMs | 5,142 of 281,602 px differ (**1.8 %**) |
 
 Reproduce it yourself:
 
@@ -136,12 +138,61 @@ python3 tools/generate_pyhrg_reference.py
 Rscript tools/cross_validate_against_pyhrg.R
 ```
 
+### Where the last 0.25 % goes
+
+The synthetic scenes agree exactly; real canopy height models do not, and the
+honest version is that the equality holds on the test suite rather than in
+general. Measured stage by stage, each stage fed pyHRG's own output for the
+previous one:
+
+- `smooth_chm` — identical to the last bit
+- `detect_tops` — agrees to 2.8e-14
+- the mask — identical
+- the watershed — **375 of 147,368 masked pixels differ**
+
+`src/watershed.c` reimplements `skimage.segmentation.watershed` rather than
+calling it, and on the plateau structure of a real CHM the two break ties
+differently. Which of the three documented details diverges — heap order,
+label-on-push, or neighbour order — is not yet established.
+
+Those 375 pixels become 5,142 differing crown pixels, and on `chm_33_2012`
+20 watershed pixels become 3,437: the watershed regions are the units the
+graph grows over, so moving one boundary pixel shifts a region's mean and
+variance, flips a merge, and carries a whole region to another crown. Treat
+any watershed difference as significant however small it looks.
+
 Two details make that agreement possible, and both are easy to get wrong in a port:
 
 - **R stores matrices by column, Python by row.** The neighbour visiting order decides how plateaus resolve, so the C code is handed `t(matrix)`, whose column-major buffer is byte-identical to a row-major NumPy array. Skip that and the watershed silently transposes its tie-breaking.
 - **Floating-point addition is not associative.** The pixel pass traverses in the same order as pyHRG, so the same heights are summed in the same sequence and the variances match to the last bit.
 
 ## Notes on behaviour
+
+**Tree detection is unstable on plateaus, and the rest of the pipeline is not.**
+This is a property of the method, not of either implementation, and it matters
+more than the 0.25 % above. Adding 1 nanometre of noise to a CHM — far below any
+physical or instrumental meaning, and far below the single precision the data is
+stored in — changes nothing about the canopy, but it does break plateau ties
+differently. Measured over the seven real CHMs, eight repeats each
+(`tools/measure_tie_sensitivity.py`):
+
+| | worst case |
+|---|---|
+| tree tops detected | **3 to 30 fewer**, some moving up to **13 px** |
+| canopy pixels changing crown, tops free to move | up to **62 %** |
+| canopy pixels changing crown, tops held fixed | **0 %**, on every scene |
+
+Read that last row carefully: with the tree tops pinned, the watershed, the
+region growing and the conflict arbitration are perfectly stable. All of the
+instability enters through `detect_tops`. The tree count falls consistently
+rather than randomly, which suggests exact ties inflate it — a plateau of equal
+maxima yields tops that a hair of noise removes — though that mechanism is a
+hypothesis and has not been confirmed.
+
+The practical consequence: **a tree count from this method carries an
+implementation-defined component**, and so do crown boundaries. Report the
+smoothing and detection parameters, and do not compare counts across
+implementations or library versions without re-running both.
 
 **The crown count can be lower than the tree-top count.** That is the point: merged trees leave gaps in the id sequence. Use `protect_seeds = TRUE` if you need one crown per top.
 
