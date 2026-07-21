@@ -1,0 +1,92 @@
+cff-version: 1.2.0
+title: "rHRG — Individual tree crown delineation by Hierarchical Region Growing"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Pawelec
+    given-names: Igor
+    affiliation: "University of Agriculture in Kraków, Poland"
+    email: igor.pawelec@urk.edu.pl
+    orcid: "https://orcid.org/0009-0005-9798-3596"
+repository-code: "https://github.com/igorpawelec/rhrg"
+license: GPL-3.0-or-later
+version: "0.1.0"
+date-released: "2026-07-21"
+keywords:
+  - individual tree crown delineation
+  - canopy height model
+  - watershed
+  - region growing
+  - forestry
+  - remote sensing
+references:
+  - type: article
+    title: "Algorithms for Computing the Sample Variance: Analysis and Recommendations"
+    authors:
+      - family-names: Chan
+        given-names: Tony F.
+      - family-names: Golub
+        given-names: Gene H.
+      - family-names: LeVeque
+        given-names: Randall J.
+    journal: "The American Statistician"
+    year: 1983
+    doi: 10.1080/00031305.1983.10483115
+    notes: "Used for combining region statistics."
+  - type: article
+    title: "Seeing the Trees in the Forest"
+    authors:
+      - family-names: Popescu
+        given-names: Sorin C.
+      - family-names: Wynne
+        given-names: Randolph H.
+    journal: "Photogrammetric Engineering & Remote Sensing"
+    year: 2004
+    doi: 10.14358/PERS.70.5.589
+    notes: "Used for tree detection with a variable window size."
+  - type: software
+    title: "PyCrown — Fast raster-based individual tree segmentation for LiDAR data"
+    authors:
+      - family-names: Zörner
+        given-names: Jan
+      - family-names: Dymond
+        given-names: John
+      - family-names: Shepherd
+        given-names: James
+      - family-names: Jolly
+        given-names: Ben
+    publisher:
+      name: "Landcare Research NZ Ltd"
+    year: 2018
+    doi: 10.7931/M0SR-DN55
+    notes: "The pipeline structure derives from this."
+  - type: article
+    title: "LiDAR-Based Regional Inventory of Tall Trees — Wellington, New Zealand"
+    authors:
+      - family-names: Zörner
+        given-names: Jan
+      - family-names: Dymond
+        given-names: John R.
+      - family-names: Shepherd
+        given-names: James D.
+      - family-names: Wiser
+        given-names: Susan K.
+      - family-names: Bunting
+        given-names: Pete
+      - family-names: Jolly
+        given-names: Ben
+    journal: "Forests"
+    volume: 9
+    issue: 11
+    year: 2018
+    doi: 10.3390/f9110702
+  - type: software
+    title: "pyHRG — the Python implementation of the same method"
+    authors:
+      - family-names: Pawelec
+        given-names: Igor
+    url: "https://github.com/igorpawelec/pyhrg"
+    notes: >-
+      Results match pixel for pixel on the shared synthetic test suite, and
+      closely but not exactly on canopy height models containing plateaus,
+      where the two implementations break ties differently. See the README.

@@ -218,6 +218,8 @@ If you use rHRG in your research, please cite the software and the work it build
 
 > Pawelec, I. (2026). *rhrg: individual tree crown delineation from canopy height models by Hierarchical Region Growing* [R package]. https://github.com/igorpawelec/rhrg
 
+Machine-readable metadata, including everything cited below, is in [`CITATION.cff`](CITATION.cff).
+
 **Upstream project.** The pipeline structure derives from PyCrown:
 
 > Zörner, J., Dymond, J., Shepherd, J., Jolly, B. (2018). *PyCrown — Fast raster-based individual tree segmentation for LiDAR data.* Landcare Research NZ Ltd. https://doi.org/10.7931/M0SR-DN55
