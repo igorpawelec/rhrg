@@ -2,6 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/igorpawelec/rhrg/main/www/logoR.png" alt="R HRG logo" align="right" width="200"/>
 
+[![R-CMD-check](https://github.com/igorpawelec/rhrg/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/igorpawelec/rhrg/actions/workflows/R-CMD-check.yaml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![R](https://img.shields.io/badge/R-%3E%3D%203.6-blue.svg)](https://www.r-project.org)
 
