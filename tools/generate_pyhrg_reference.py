@@ -48,10 +48,16 @@ for k in range(70):
         continue
     vt = float(rng.choice([2.0, 8.0, 25.0]))
     rule = str(rng.choice(["height", "distance", "similarity"]))
+    # protect_seeds and retry_rejected went uncovered until 2026-07-22:
+    # every case ran with both off, so a divergence in either would have
+    # gone unseen. They match, and this is what keeps them matching.
+    protect = bool(k % 5 == 0)
+    retry = bool(k % 4 == 0)
 
     g = HierarchicalRegionGrower(sm)
     out = g.run_all(tops, variance_thresh=vt, mask_thresh=1.0,
-                    conflict_rule=rule)
+                    conflict_rule=rule, protect_seeds=protect,
+                    retry_rejected=retry)
     np.savetxt(f"{OUT}/sm_{k}.csv", sm, delimiter=",")
     np.savetxt(f"{OUT}/tops_{k}.csv", np.array(tops) + 1, fmt="%d", delimiter=",")
     # Subpixel tops, before as_pixels. Without these the R side of
@@ -61,9 +67,9 @@ for k in range(70):
     np.savetxt(f"{OUT}/sub_{k}.csv", np.asarray(sub, float) + 1.0,
                delimiter=",", fmt="%.17g")
     np.savetxt(f"{OUT}/out_{k}.csv", out, fmt="%d", delimiter=",")
-    cases.append((k, vt, rule, g.n_contested))
+    cases.append((k, vt, rule, g.n_contested, int(protect), int(retry)))
 
 with open(f"{OUT}/meta.csv", "w") as f:
-    for k, vt, rule, nc in cases:
-        f.write(f"{k},{vt},{rule},{nc}\n")
+    for k, vt, rule, nc, ps, rr in cases:
+        f.write(f"{k},{vt},{rule},{nc},{ps},{rr}\n")
 print(f"{len(cases)} reference cases written to {OUT}/")

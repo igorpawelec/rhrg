@@ -15,7 +15,19 @@ if (!dir.exists(dir))
   stop("run tools/generate_pyhrg_reference.py first", call. = FALSE)
 
 meta <- utils::read.csv(file.path(dir, "meta.csv"), header = FALSE,
-                        col.names = c("k", "vt", "rule", "n_contested"))
+                        col.names = c("k", "vt", "rule", "n_contested",
+                                      "protect", "retry"))
+# meta.csv is written last by the generator, so a stale or truncated one
+# means the run that produced it died part-way. Without this check the
+# validator happily compares whatever files survive and reports success --
+# it did exactly that once, on a reference the generator had failed to
+# finish.
+if (ncol(meta) != 6L || nrow(meta) == 0L)
+  stop("meta.csv has ", ncol(meta), " columns and ", nrow(meta),
+       " rows, expected 6 columns and more than 0. Re-run ",
+       "tools/generate_pyhrg_reference.py; the last run did not finish.",
+       call. = FALSE)
+
 bad <- 0L; diff_px <- 0L; tot_px <- 0L; contested_bad <- 0L
 top_bad <- 0L; top_dev <- 0
 # Cases 0-59 are small and sparse and have always matched exactly; cases
@@ -53,7 +65,9 @@ for (i in seq_len(nrow(meta))) {
   }
 
   got <- grow_crowns(sm, tops, variance_thresh = meta$vt[i], mask_thresh = 1,
-                     conflict_rule = as.character(meta$rule[i]))
+                     conflict_rule = as.character(meta$rule[i]),
+                     protect_seeds = as.logical(meta$protect[i]),
+                     retry_rejected = as.logical(meta$retry[i]))
   d <- sum(got != ref)
   tot_px <- tot_px + length(ref); diff_px <- diff_px + d
   if (k <= SMALL_MAX) {
