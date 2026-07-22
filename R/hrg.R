@@ -48,7 +48,21 @@ CONFLICT_RULES <- c("height", "distance", "similarity")
 #'   the standard-deviation difference and the inverse shared border length.
 #' @param anneal_lambda Numeric. Per-iteration tightening of the variance
 #'   threshold. 1 keeps it constant.
-#' @param max_iters Integer. Cap on grow iterations per seed.
+#' @param max_iters Optional cap on grow iterations per seed. `NULL`, the
+#'   default since 0.3.0, runs to natural termination -- which is what the
+#'   algorithm calls for and is bounded anyway, since every iteration either
+#'   accepts a region or records a rejection and there are finitely many of
+#'   both.
+#'
+#'   It defaulted to 200 and that bound bit: on `chm_33_2012.tif` 332 of 492
+#'   crowns stopped there with candidates still queued, and the crown count
+#'   read 132 against 63 once the cap was lifted. Boundaries barely moved,
+#'   2.9% of the partition, because a truncated grow blocks merges rather
+#'   than misplacing pixels -- so the damage landed on the one number a
+#'   forestry user reports. It bought no speed either: natural termination
+#'   needed at most 484 iterations there and ran faster, twice as many
+#'   surviving crowns costing more in conflict arbitration than the extra
+#'   merges cost in growing.
 #' @param conflict_rule One of [CONFLICT_RULES]. `"height"` gives contested
 #'   canopy to the taller tree, `"distance"` to the nearest, `"similarity"`
 #'   to the tree whose apex height best matches the region. Ties resolve to
@@ -82,7 +96,7 @@ grow_crowns <- function(chm, tops,
                         morpho_radius = 0L,
                         alpha = 1, beta = 0.5, gamma = 0.1,
                         anneal_lambda = 1,
-                        max_iters = 200L,
+                        max_iters = NULL,
                         conflict_rule = "height",
                         protect_seeds = FALSE,
                         retry_rejected = FALSE) {
@@ -227,7 +241,19 @@ grow_crowns <- function(chm, tops,
   if (csr$row_ptr[seed + 2L] > csr$row_ptr[seed + 1L])
     for (k in rng) push(csr$weights[k], csr$col_idx[k])
 
-  for (it in seq_len(max_iters)) {
+  it <- 0L
+  repeat {
+    it <- it + 1L
+    if (!is.null(max_iters) && it > max_iters) {
+      # No seed id in the message: a truncated grow is rarely a lone crown
+      # -- 332 of 492 hit the old default of 200 on chm_33_2012.tif -- and
+      # one warning per crown would bury the run in output.
+      warning("max_iters = ", max_iters, " was reached with candidates still ",
+              "queued, so at least one crown is truncated rather than ",
+              "finished. Raise it, or leave it NULL for natural termination.",
+              call. = FALSE)
+      break
+    }
     if (!length(hi)) break
     if (anneal_lambda < 1 && it > 1L) vt <- vt * anneal_lambda
     cand <- NA_integer_

@@ -1,3 +1,25 @@
+# rhrg 0.3.0
+
+* **`max_iters` now defaults to `NULL`, meaning natural termination.** It was
+  200, and the bound bit: on `chm_33_2012.tif` 332 of 492 crowns stopped there
+  with candidates still queued, and the crown count read **132 against 63**
+  once the cap was lifted -- more than a factor of two in the headline number,
+  decided by a constant rather than by the canopy.
+
+  The boundaries barely moved, 2.9 % of the partition, because a truncated
+  grow blocks merges rather than misplacing pixels. That is what made it hard
+  to notice: the segmentation looked right and the tree count did not.
+
+  The cap bought nothing. Growth is bounded anyway -- each iteration either
+  accepts a region or records a rejection, and there are finitely many of both
+  -- and natural termination needed at most 484 iterations on that scene while
+  running *faster*, since twice as many surviving crowns cost more in conflict
+  arbitration than the extra merges cost in growing.
+
+  Passing an explicit `max_iters` still works and now warns when it binds.
+
+  pyHRG 0.3.0 carries the same change.
+
 # rhrg 0.2.0
 
 * **An even smoothing or detection window is now refused.** An even window has
