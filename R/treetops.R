@@ -30,6 +30,17 @@ detect_tops <- function(chm, hmin = 2, ws = 3L) {
   if (length(dim(chm)) != 2L) stop("chm must be a 2-D matrix", call. = FALSE)
   ws <- as.integer(ws)
   if (is.na(ws) || ws < 1L) stop("ws must be >= 1", call. = FALSE)
+  # An even window has no centre pixel, so the local-maximum test is taken
+  # over a window sitting half a pixel off, and the tree count then depends
+  # on which way the raster happens to be oriented. Measured on
+  # chm_150_2023.tif: ws=4 found 397 tops and 400 on the mirror image, ws=6
+  # found 188 and 206. Refused rather than warned about, because nothing in
+  # the output shows it happened.
+  if (ws %% 2L == 0L)
+    stop("ws must be odd, got ", ws, ". An even window has no centre pixel, ",
+         "so the local-maximum test sits half a pixel off and the tree count ",
+         "depends on the raster's orientation. Use ", ws - 1L, " or ", ws + 1L,
+         ".", call. = FALSE)
 
   loc_max <- .focal(chm, ws, max)
   cand <- (chm == loc_max) & (chm > hmin)

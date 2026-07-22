@@ -1,3 +1,16 @@
+# rhrg 0.2.0
+
+* **An even smoothing or detection window is now refused.** An even window has
+  no centre pixel, so it sits half a pixel off and the result depends on which
+  way the raster happens to be oriented. Measured before the guard: smoothing a
+  40x55 scene and its mirror image differed by up to 10.5 m at `ws = 4`, and
+  `detect_tops()` found 151 tops against 137 on the mirror. `method =
+  "gaussian"` is exempt, because `ws` only sets sigma there and the kernel stays
+  symmetric.
+
+  pyHRG 0.2.0 carries the same guard; the asymmetry was faithfully reproduced
+  here, so it had to be fixed on both sides to keep the two in step.
+
 # rhrg 0.1.0
 
 First release.

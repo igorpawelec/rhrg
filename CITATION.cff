@@ -10,8 +10,8 @@ authors:
     orcid: "https://orcid.org/0009-0005-9798-3596"
 repository-code: "https://github.com/igorpawelec/rhrg"
 license: GPL-3.0-or-later
-version: "0.1.0"
-date-released: "2026-07-21"
+version: "0.2.0"
+date-released: "2026-07-22"
 keywords:
   - individual tree crown delineation
   - canopy height model

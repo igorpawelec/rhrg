@@ -1,7 +1,7 @@
 Package: rhrg
 Type: Package
 Title: Individual Tree Crown Delineation by Hierarchical Region Growing
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: person("Igor", "Pawelec", email = "igor.pawelec@urk.edu.pl",
                   role = c("aut", "cre"),
                   comment = c(ORCID = "0009-0005-9798-3596"))
@@ -28,5 +28,5 @@ Imports: stats
 Suggests: terra
 URL: https://github.com/igorpawelec/rhrg
 BugReports: https://github.com/igorpawelec/rhrg/issues
-RoxygenNote: 7.3.1
 NeedsCompilation: yes
+Config/roxygen2/version: 8.0.0

@@ -50,4 +50,40 @@ cat("as_pixels\n")
 ok(all(as_pixels(rbind(c(3.7, 4.2))) == c(3L, 4L)), "floors to integers")
 ok(is.integer(as_pixels(rbind(c(3.7, 4.2)))), "returns integers")
 
+
+# ── even windows are refused ──────────────────────────────────────────
+#
+# An even window has no centre pixel, so it sits half a pixel off and the
+# result depends on which way the raster is oriented. Measured before the
+# guard: smoothing a 40x55 scene and its mirror differed by up to 10.5 m at
+# ws=4, and detect_tops found 151 tops against 137 on the mirror.
+cat("even windows\n")
+
+set.seed(4)
+sc <- matrix(runif(40 * 55) * 20 + 5, 40, 55)
+bad <- function(expr, what) ok(inherits(try(expr, silent = TRUE), "try-error"), what)
+
+for (ws in c(2L, 4L, 6L)) {
+  for (meth in c("median", "mean", "maximum"))
+    bad(smooth_chm(sc, ws = ws, method = meth),
+        sprintf("smooth_chm rejects ws=%d with method='%s'", ws, meth))
+  bad(detect_tops(sc, hmin = 5, ws = ws),
+      sprintf("detect_tops rejects ws=%d", ws))
+}
+
+# gaussian is exempt: ws only sets sigma, and the kernel stays symmetric.
+g <- smooth_chm(sc, ws = 4L, method = "gaussian")
+gm <- smooth_chm(sc[, ncol(sc):1], ws = 4L, method = "gaussian")[, ncol(sc):1]
+ok(isTRUE(all.equal(g, gm)), "gaussian accepts an even ws and stays symmetric")
+
+for (meth in c("median", "mean", "maximum", "gaussian")) {
+  a <- smooth_chm(sc, ws = 5L, method = meth)
+  b <- smooth_chm(sc[, ncol(sc):1], ws = 5L, method = meth)[, ncol(sc):1]
+  ok(isTRUE(all.equal(a, b)),
+     sprintf("odd ws is orientation-independent for '%s'", meth))
+}
+ok(nrow(detect_tops(sc, hmin = 5, ws = 5L)) ==
+   nrow(detect_tops(sc[, ncol(sc):1], hmin = 5, ws = 5L)),
+   "detection with an odd ws is orientation-independent")
+
 cat("\nall chm/treetops tests passed\n")

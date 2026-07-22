@@ -33,6 +33,15 @@ smooth_chm <- function(chm, ws = 3L, method = c("median", "mean", "gaussian", "m
   if (length(dim(chm)) != 2L) stop("chm must be a 2-D matrix", call. = FALSE)
   ws <- as.integer(ws)
   if (is.na(ws) || ws < 1L) stop("ws must be >= 1", call. = FALSE)
+  # See detect_tops(): an even window sits half a pixel off, so the result
+  # depends on the raster's orientation. Smoothing a 40x55 scene and its
+  # mirror image differed by up to 10.5 m at ws=4. "gaussian" is exempt
+  # because ws only sets sigma there and the kernel stays symmetric.
+  if (method != "gaussian" && ws %% 2L == 0L)
+    stop("ws must be odd for method = '", method, "', got ", ws,
+         ". An even window has no centre pixel, so it sits half a pixel off ",
+         "and the result depends on the raster's orientation. Use ", ws - 1L,
+         " or ", ws + 1L, ".", call. = FALSE)
   if (ws == 1L) return(chm)
 
   if (method == "gaussian") return(.gaussian_filter(chm, sigma = ws / 3))
