@@ -1,5 +1,26 @@
 # rhrg 0.4.0
 
+# rhrg 0.4.1
+
+## Fixed
+
+* `man/grow_crowns.Rd` still documented `max_iters = 200L` after 0.3.0 changed
+  the default to `NULL`. `R CMD check` reported it as a codoc mismatch and the
+  R-CMD-check workflow, which treats warnings as failures, went red on all five
+  platforms. Anyone reading `?grow_crowns` was told the cap was still there.
+
+* The cause was structural, so that is what was fixed. Every file in `man/`
+  carried a hand-written header instead of roxygen2's marker, so
+  `roxygenise()` refused to touch any of them and the documentation had been
+  maintained by hand — free to drift from the roxygen comments it claimed to
+  come from, silently, except where `codoc` happens to look. `man/` is now
+  generated, and `Roxygen: list(markdown = TRUE)` is set so the markdown in
+  those comments renders instead of reaching the page as `[as_pixels()]`.
+
+  The regenerated pages are strictly richer than the ones they replace (1813
+  words against 1639); nothing was lost.
+
+
 * **`delineate()` now works on a real CHM file with nodata.** It did not.
   `read_chm()` returns `NA` where the file declares nodata -- terra honours the
   raster's NA flag, whatever the old docstring claimed -- `smooth_chm()` then
