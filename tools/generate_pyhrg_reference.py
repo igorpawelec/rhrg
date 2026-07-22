@@ -31,6 +31,14 @@ for k in range(70):
                                 / (2 * rng.uniform(3, 7) ** 2)))
     if k % 3 == 0:
         chm = np.round(chm * 2) / 2          # plateaus, where ties are common
+    if k % 7 == 0:
+        # Nodata holes. Until pyHRG 0.5.0 / rHRG 0.4.0 these two disagreed
+        # completely here: scipy's comparison filters are undefined on NaN,
+        # so Python smoothed the hole edges to arbitrary window elements,
+        # while R propagated NA and then stopped with "missing value where
+        # TRUE/FALSE needed". Both now skip NaN, and this is what checks it.
+        chm[2:6, 2:6] = np.nan
+        chm[n - 7:n - 3, n - 9:n - 5] = np.nan
     chm = chm.astype(np.float32)
 
     sm = smooth_chm(chm, ws=3, method="median")

@@ -44,8 +44,23 @@ smooth_chm <- function(chm, ws = 3L, method = c("median", "mean", "gaussian", "m
          " or ", ws + 1L, ".", call. = FALSE)
   if (ws == 1L) return(chm)
 
+  # NA is skipped, not propagated. A window holding nothing but NA has no
+  # statistic and stays NA.
+  #
+  # This matches pyHRG 0.5.0, which had to stop handing NaN to
+  # scipy.ndimage: those filters are undefined on NaN rather than NaN-aware.
+  # With the values 1..9 and one NaN, median_filter returned 9, 5 or 4
+  # depending on where the NaN sat, and maximum_filter returned nan, 9 or 8.
+  # Before that, R propagated NA instead and lost 3% of a real raster per
+  # smoothing pass; neither behaviour was defensible.
   if (method == "gaussian") return(.gaussian_filter(chm, sigma = ws / 3))
-  fun <- switch(method, median = stats::median, mean = mean, maximum = max)
+  fun <- switch(method,
+                median  = function(v) if (all(is.na(v))) NA_real_ else
+                            stats::median(v, na.rm = TRUE),
+                mean    = function(v) if (all(is.na(v))) NA_real_ else
+                            mean(v, na.rm = TRUE),
+                maximum = function(v) if (all(is.na(v))) NA_real_ else
+                            max(v, na.rm = TRUE))
   .focal(chm, ws, fun)
 }
 
@@ -76,6 +91,18 @@ smooth_chm <- function(chm, ws = 3L, method = c("median", "mean", "gaussian", "m
 }
 
 .gaussian_filter <- function(m, sigma) {
+  # Normalised convolution when NA is present: weight the kernel by which
+  # cells exist, so a hole neither drags neighbours towards zero nor
+  # spreads. Matches pyHRG's gaussian_filter(filled)/gaussian_filter(mask).
+  if (anyNA(m)) {
+    valid <- !is.na(m)
+    filled <- m; filled[!valid] <- 0
+    num <- .gaussian_filter(filled, sigma)
+    den <- .gaussian_filter(matrix(as.double(valid), nrow(m), ncol(m)), sigma)
+    out <- num / den
+    out[den == 0] <- NA_real_
+    return(out)
+  }
   # separable, truncated at 4 sigma, as scipy.ndimage.gaussian_filter
   r <- as.integer(4 * sigma + 0.5)
   x <- -r:r

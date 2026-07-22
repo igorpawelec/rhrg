@@ -1,3 +1,28 @@
+# rhrg 0.4.0
+
+* **`delineate()` now works on a real CHM file with nodata.** It did not.
+  `read_chm()` returns `NA` where the file declares nodata -- terra honours the
+  raster's NA flag, whatever the old docstring claimed -- `smooth_chm()` then
+  propagated it and *grew* the hole, and `detect_tops()` stopped with
+  "missing value where TRUE/FALSE needed", which points nowhere. The
+  documented one-call entry point could not process the package's own test
+  data.
+
+  `NA` is now skipped rather than propagated: window statistics are taken over
+  the cells that exist, and a window holding nothing but `NA` stays `NA`.
+  `.prepare_mask()` treats `NA` as outside the mask, which is where numpy
+  arrives by a different route, since `NaN > x` is `FALSE`.
+
+  On `chm_150_2023.tif` R and pyHRG now both return **255 crowns**. Neither
+  managed it before: R crashed and Python silently smoothed 3 % of the raster
+  to arbitrary values, because scipy's comparison filters are undefined on
+  NaN rather than NaN-aware. Matching Python would have meant reproducing that
+  -- the same trap that gave this package its watershed divergence -- so both
+  were defined instead. pyHRG 0.5.0 carries the other half.
+
+  The shared cross-check gained ten scenes with nodata holes, so this is
+  covered rather than assumed.
+
 # rhrg 0.3.0
 
 * **`max_iters` now defaults to `NULL`, meaning natural termination.** It was

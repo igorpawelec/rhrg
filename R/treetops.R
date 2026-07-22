@@ -42,8 +42,14 @@ detect_tops <- function(chm, hmin = 2, ws = 3L) {
          "depends on the raster's orientation. Use ", ws - 1L, " or ", ws + 1L,
          ".", call. = FALSE)
 
-  loc_max <- .focal(chm, ws, max)
-  cand <- (chm == loc_max) & (chm > hmin)
+  # -Inf, not NA, for the cells with no data: it loses every comparison and
+  # drops out of the maximum cleanly. A NA pixel is never detected itself,
+  # since NA == anything and NA > hmin are both NA, which `&` treats as
+  # false once the comparison is made explicit below.
+  filled <- chm; filled[is.na(filled)] <- -Inf
+  loc_max <- .focal(filled, ws, function(v) if (all(!is.finite(v))) -Inf else
+                      max(v, na.rm = TRUE))
+  cand <- !is.na(chm) & (chm == loc_max) & (chm > hmin)
   if (!any(cand)) return(.empty_tops())
 
   lab <- .label_components(cand)

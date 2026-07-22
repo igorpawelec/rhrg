@@ -156,7 +156,12 @@ grow_crowns <- function(chm, tops,
 }
 
 .prepare_mask <- function(chm, thresh, radius) {
-  m <- chm > thresh
+  # NA is outside the mask, not an unknown to propagate. `chm > thresh`
+  # alone yields NA there, which then reaches `if (var <= threshold)` in
+  # the grower and stops it with "missing value where TRUE/FALSE needed".
+  # numpy reaches the same place by a different route: NaN > x is False,
+  # so nodata falls outside the mask on its own.
+  m <- !is.na(chm) & chm > thresh
   if (radius > 0L) {
     se <- .disk(radius)
     m <- .morph(m, se, min)   # erosion then dilation = opening

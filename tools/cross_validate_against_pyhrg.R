@@ -28,8 +28,11 @@ small_bad <- 0L; large_diff <- 0L; large_px <- 0L
 
 for (i in seq_len(nrow(meta))) {
   k <- meta$k[i]
+  # na.strings: numpy writes NaN as "nan", which read.csv would otherwise
+  # take for a character column and turn the whole matrix into text.
   rd <- function(f) as.matrix(utils::read.csv(
-    file.path(dir, sprintf("%s_%d.csv", f, k)), header = FALSE))
+    file.path(dir, sprintf("%s_%d.csv", f, k)), header = FALSE,
+    na.strings = c("nan", "NA", "NaN")))
   sm <- rd("sm"); ref <- rd("out")
   tops <- rd("tops"); if (ncol(tops) == 1L) tops <- t(tops)
 
