@@ -1,5 +1,19 @@
 # rhrg 0.4.0
 
+# rhrg 0.4.2
+
+## Changed
+
+* `src/init.c` now calls `R_forceSymbols(dll, TRUE)` alongside
+  `R_useDynamicSymbols(dll, FALSE)`, matching rgeoadaptels. The native
+  routines are no longer reachable by name, so `.Call("C_rag", ...)` fails
+  with *symbol name "C_rag" not in load table* instead of resolving. Both
+  call sites in `R/hrg.R` already pass the registered object, so nothing
+  inside the package changes; what changes is that a mistyped or renamed
+  entry point fails at load rather than in the middle of someone's run, and
+  the C routines stop being callable from outside rHRG.
+
+
 # rhrg 0.4.1
 
 ## Fixed

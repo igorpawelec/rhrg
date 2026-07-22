@@ -29,10 +29,11 @@ devtools::load_all()
 
 The package has C sources in `src/` — plain C called through `.Call`, no
 Rcpp. Symbols are registered in `src/init.c`, which calls
-`R_useDynamicSymbols(dll, FALSE)`, so a new `.Call` entry point has to be
-added to `CallEntries` there or it will not be found. Unlike rgeoadaptels
-this package does not also call `R_forceSymbols(dll, TRUE)`, so `.Call` still
-accepts a symbol given as a string here.
+`R_useDynamicSymbols(dll, FALSE)` and `R_forceSymbols(dll, TRUE)`, so a new
+`.Call` entry point has to be added to `CallEntries` there or it will not be
+found. `R_forceSymbols` also means `.Call` takes only the registered object,
+never a name: `.Call(C_rag, ...)`, not `.Call("C_rag", ...)`. The string form
+fails with *symbol name "C_rag" not in load table*.
 
 ## Running the checks
 

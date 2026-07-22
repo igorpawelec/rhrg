@@ -16,4 +16,9 @@ static const R_CallMethodDef CallEntries[] = {
 void attribute_visible R_init_rhrg(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
+    /* Refuse .Call("C_watershed", ...) as well: with the string form a
+     * typo is a run-time lookup failure inside a user's pipeline, and
+     * the symbol stays reachable from outside the package. Both call
+     * sites in R/hrg.R already pass the registered object. */
+    R_forceSymbols(dll, TRUE);
 }
