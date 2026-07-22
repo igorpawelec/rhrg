@@ -107,6 +107,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install "pyhrg @ git+https://github.com/igorpawelec/pyhrg.git"
 
+      - name: Check the version declarations agree
+        # CITATION.cff is .Rbuildignore'd, so R CMD check never sees it;
+        # it sat two releases behind DESCRIPTION before this step existed.
+        run: Rscript tools/check_versions.R
+
       - name: Install rHRG
         run: R CMD INSTALL .
 
