@@ -101,7 +101,7 @@ attr(crowns, "n_contested")
 | `morpho_radius` | 0 | Radius for opening/closing the mask. 0 = off |
 | `alpha`, `beta`, `gamma` | 1, 0.5, 0.1 | Edge weights: mean diff, σ diff, inverse border length |
 | `anneal_lambda` | 1 | Per-iteration tightening of the threshold. 1 = constant |
-| `max_iters` | 200 | Cap on grow iterations per seed |
+| `max_iters` | `NULL` | Cap on grow iterations per seed. `NULL` grows to natural termination |
 | `conflict_rule` | `"height"` | Who wins contested canopy — see below |
 | `protect_seeds` | `FALSE` | If TRUE, no tree is absorbed; every top yields a crown |
 | `retry_rejected` | `FALSE` | Reconsider regions rejected earlier in the same grow |
@@ -125,7 +125,7 @@ Two implementations of one method are only useful if they agree, so this is meas
 | Test | Result |
 |---|---|
 | Watershed vs `scikit-image`, 200 random scenes incl. plateaus | **0 of 422,687 px differ** |
-| Full pipeline vs pyHRG, 60 random scenes, all 3 conflict rules | **0 of 120,977 px differ** |
+| Full pipeline vs pyHRG, 70 synthetic scenes, all 3 conflict rules | 60 small scenes **exact**; 10 large crowded ones within **0.032 %** |
 | Crown counts, contested counts | identical throughout |
 | Watershed vs `scikit-image`, 7 **real** CHMs | 375 of 147,368 masked px differ (**0.25 %**) |
 | Full pipeline vs pyHRG, same 7 real CHMs | 5,142 of 281,602 px differ (**1.8 %**) |
@@ -209,7 +209,7 @@ The pipeline shape — smooth the CHM, find tops as local maxima, delineate crow
 ```r
 remotes::install_github("igorpawelec/rhrg")
 # or, from a clone:
-#   R CMD build rhrg && R CMD check rhrg_0.1.0.tar.gz
+#   R CMD build rhrg && R CMD check rhrg_0.4.2.tar.gz
 ```
 
 ## Citation
